@@ -17,12 +17,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.studyeasy.SpringRestDemo.Config.RsaKeyProperties;
 
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
@@ -30,12 +27,22 @@ import com.nimbusds.jose.proc.SecurityContext;
 @EnableWebSecurity
 public class SecurityConfig {
     
+    /*
     private final RsaKeyProperties rsaKeys;
 
     public SecurityConfig(RsaKeyProperties rsaKeys){
         this.rsaKeys = rsaKeys;
-    }
+    }*/
+
+    private RSAKey rsaKey;
     
+    @Bean
+    public JWKSource<SecurityContext> jwkSource(){
+        rsaKey = Jwks.generateRsa();
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
+    }
+
     @Bean
     public InMemoryUserDetailsManager users(){
         return new InMemoryUserDetailsManager(
@@ -55,17 +62,29 @@ public class SecurityConfig {
     }
 
     //OAuth JWT DECODER
+    /*
     @Bean
     public JwtDecoder jwtDecoder(){
-        return NimbusJwtDecoder.withPublicKey(rsaKeys.publicKey()).build();
+        return NimbusJwtDecoder.withPublicKey(rsaKey.publicKey()).build();
+    }
+    */
+    @Bean
+    public JwtDecoder jwtDecoder() throws Exception{
+        return NimbusJwtDecoder.withPublicKey(rsaKey.toRSAPublicKey()).build();
     }
 
     //OAuth JWT ENCODER
+    /*
     @Bean
     public JwtEncoder jwtEncoder(){
         JWK jwk = new RSAKey.Builder(rsaKeys.publicKey()).privateKey(rsaKeys.privateKey()).build();
         JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwks);
+    }
+    */
+    @Bean
+    public JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwkSource){
+        return new NimbusJwtEncoder(jwkSource);
     }
 
     @Bean
