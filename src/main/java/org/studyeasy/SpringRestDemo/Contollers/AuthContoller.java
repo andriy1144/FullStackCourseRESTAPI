@@ -5,12 +5,11 @@ import org.studyeasy.SpringRestDemo.Sevice.TokenService;
 import org.studyeasy.SpringRestDemo.payload.auth.Token;
 import org.studyeasy.SpringRestDemo.payload.auth.UserLogin;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 
@@ -29,10 +28,17 @@ public class AuthContoller {
     @PostMapping("/token")
     @ResponseBody
     public Token token(@RequestBody UserLogin userLogin) {
-        Authentication authentication = 
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userLogin.username(), userLogin.password()));
-        
-        return new Token(tokenService.generateToken(authentication));
+        try {
+            System.out.println("Username: " + userLogin.username());
+            System.out.println("Password: " + userLogin.password());
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(userLogin.username(), userLogin.password())
+            );
+            return new Token(tokenService.generateToken(authentication));
+        } catch (Exception e) {
+            System.err.println("Authentication failed: " + e.getMessage());
+            throw e;
+        }
     }
 
 }

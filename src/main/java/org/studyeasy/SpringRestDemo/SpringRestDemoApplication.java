@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 @EnableConfigurationProperties(RsaKeyProperties.class)
 @SecurityScheme(name = "studyeasy-demo-api", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 public class SpringRestDemoApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(SpringRestDemoApplication.class, args);
 	}
