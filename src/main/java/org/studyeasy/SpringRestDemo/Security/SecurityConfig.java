@@ -9,13 +9,13 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.nimbusds.jose.jwk.JWKSet;
@@ -43,6 +43,7 @@ public class SecurityConfig {
         return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
     }
 
+    /*
     @Bean
     public InMemoryUserDetailsManager users(){
         return new InMemoryUserDetailsManager(
@@ -51,12 +52,18 @@ public class SecurityConfig {
             .roles("USER","ADMIN")
             .build()
         );
+    }*/
+
+    @Bean
+    public static PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
     }
 
     //Authetication Manager
     @Bean
     public AuthenticationManager authManager(UserDetailsService userDetailsService){
         var authProvider = new DaoAuthenticationProvider(); //Our provider (DAO - Data Access Object)
+        authProvider.setPasswordEncoder(passwordEncoder()); //setting our encoder
         authProvider.setUserDetailsService(userDetailsService); //Setting user details service
         return new ProviderManager(authProvider); //Returning object ProviderManager
     }
@@ -89,7 +96,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        http.authorizeHttpRequests(request -> request.requestMatchers("/token").permitAll()
+        http
+            .authorizeHttpRequests(request -> request.requestMatchers("/token","/db-console/**").permitAll()
                                                       .requestMatchers("/").permitAll()
                                                       .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**").permitAll()
                                                       .requestMatchers("/v3/api-docs/**").permitAll()

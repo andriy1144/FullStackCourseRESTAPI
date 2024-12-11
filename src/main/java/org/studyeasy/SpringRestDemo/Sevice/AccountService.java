@@ -1,0 +1,44 @@
+package org.studyeasy.SpringRestDemo.Sevice;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.studyeasy.SpringRestDemo.Entities.Account;
+import org.studyeasy.SpringRestDemo.Repositories.AccountRepo;
+
+@Service
+public class AccountService implements UserDetailsService{
+    @Autowired
+    private AccountRepo accountRepo;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public Account saveUser(Account account){
+        account.setPassword( passwordEncoder.encode(account.getPassword()) );
+        return accountRepo.save(account);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<Account> user = accountRepo.findByEmail(username);
+
+        if(user.isPresent()){
+            Account foundUser = user.get();
+            return new org.springframework.security.core.userdetails.User(
+                foundUser.getEmail(),
+                foundUser.getPassword(),
+                List.of(new SimpleGrantedAuthority(foundUser.getRole())));
+        }else{
+            throw new UsernameNotFoundException("User with username " + username + " wasn't found");
+        }
+    }
+    
+}

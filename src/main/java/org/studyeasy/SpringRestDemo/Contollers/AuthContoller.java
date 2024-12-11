@@ -29,10 +29,10 @@ public class AuthContoller {
     @ResponseBody
     public Token token(@RequestBody UserLogin userLogin) {
         try {
-            System.out.println("Username: " + userLogin.username());
+            System.out.println("Username: " + userLogin.email());
             System.out.println("Password: " + userLogin.password());
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(userLogin.username(), userLogin.password())
+                new UsernamePasswordAuthenticationToken(userLogin.email(), userLogin.password())
             );
             return new Token(tokenService.generateToken(authentication));
         } catch (Exception e) {
