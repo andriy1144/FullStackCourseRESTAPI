@@ -99,6 +99,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(request -> request.requestMatchers("/token","/db-console/**").permitAll()
                                                       .requestMatchers("/").permitAll()
+                                                      .requestMatchers("/auth/**").permitAll()
                                                       .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**").permitAll()
                                                       .requestMatchers("/v3/api-docs/**").permitAll()
                                                       .requestMatchers("/test").authenticated())
