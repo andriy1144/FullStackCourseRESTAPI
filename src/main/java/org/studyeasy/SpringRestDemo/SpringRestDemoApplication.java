@@ -26,9 +26,23 @@ public class SpringRestDemoApplication {
 			Account user = new Account();
 			user.setEmail("admin@admin.com");
 			user.setPassword("pass987");
-			user.setRole("ADMIN");
+			user.setRole("ROLE_ADMIN");
 
 			accountService.saveUser(user);
+
+			Account user2 = new Account();
+			user2.setEmail("alinusya@user.com");
+			user2.setPassword("pass987");
+			user2.setRole("ROLE_ADMINCHIK");
+
+			accountService.saveUser(user2);
+
+			Account user3 = new Account();
+			user3.setEmail("andr@user.com");
+			user3.setPassword("pass987");
+			user3.setRole("ROLE_USER");
+
+			accountService.saveUser(user3);
 		};
 	}
 }

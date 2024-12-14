@@ -23,7 +23,13 @@ public class AccountService implements UserDetailsService{
 
     public Account saveUser(Account account){
         account.setPassword( passwordEncoder.encode(account.getPassword()) );
+        if(account.getRole() == null) account.setRole("ROLE_USER");
+
         return accountRepo.save(account);
+    }
+
+    public List<Account> findAll(){
+        return accountRepo.findAll();
     }
 
     @Override

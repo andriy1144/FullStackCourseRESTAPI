@@ -1,5 +1,8 @@
 package org.studyeasy.SpringRestDemo.Contollers;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -7,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +23,7 @@ import org.studyeasy.SpringRestDemo.Sevice.TokenService;
 import org.studyeasy.SpringRestDemo.Util.Constants.AccountError;
 import org.studyeasy.SpringRestDemo.Util.Constants.AccountSuccess;
 import org.studyeasy.SpringRestDemo.payload.auth.AccountDTO;
+import org.studyeasy.SpringRestDemo.payload.auth.AccountViewDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.TokenDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.UserLoginDTO;
 
@@ -62,7 +67,7 @@ public class AuthContoller {
         }
     }
 
-    @PostMapping(value = "/user/add", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = "/users/add", consumes = "application/json", produces = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Add a new user")
@@ -73,7 +78,6 @@ public class AuthContoller {
             Account account = new Account();
             account.setEmail(accountDTO.getEmail());
             account.setPassword(accountDTO.getPassword());
-            account.setRole("USER");
 
             accountService.saveUser(account);
 
@@ -84,5 +88,16 @@ public class AuthContoller {
         }
     }
     
+    @GetMapping(value = "/users", produces = "application/json")
+    @ApiResponse(responseCode = "200", description = "List of users!")
+    @Operation(summary = "List of users api")
+    public ResponseEntity<List<AccountViewDTO>> users() {
+        List<AccountViewDTO> accountViews = accountService.findAll()
+                                            .stream()
+                                            .map((account) -> new AccountViewDTO(account.getId(),account.getEmail(),account.getRole()))
+                                            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(accountViews);
+    }
 
 }
