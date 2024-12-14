@@ -89,6 +89,7 @@ public class SecurityConfig {
         return new NimbusJwtEncoder(jwks);
     }
     */
+
     @Bean
     public JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwkSource){
         return new NimbusJwtEncoder(jwkSource);
@@ -97,9 +98,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http
-            .authorizeHttpRequests(request -> request.requestMatchers("/token","/db-console/**").permitAll()
+            .authorizeHttpRequests(request -> request.requestMatchers("/auth/users/add", "/auth/token").permitAll()
+                                                      .requestMatchers("/auth/users").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_NYASHNIY_ADMINCHICK")
                                                       .requestMatchers("/").permitAll()
-                                                      .requestMatchers("/auth/**").permitAll()
                                                       .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**").permitAll()
                                                       .requestMatchers("/v3/api-docs/**").permitAll()
                                                       .requestMatchers("/test").authenticated())

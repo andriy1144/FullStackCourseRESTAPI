@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class UserLoginDTO {
     @Email(message = "Invalid email!")
-    @Schema(description = "Email address", example = "admin@admin.com", requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Email address", example = "user@user.com", requiredMode = RequiredMode.REQUIRED)
     private String email;
 
 

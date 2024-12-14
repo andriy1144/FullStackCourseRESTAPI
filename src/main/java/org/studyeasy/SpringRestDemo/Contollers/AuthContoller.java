@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +28,7 @@ import org.studyeasy.SpringRestDemo.payload.auth.UserLoginDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -90,11 +90,14 @@ public class AuthContoller {
     
     @GetMapping(value = "/users", produces = "application/json")
     @ApiResponse(responseCode = "200", description = "List of users!")
+    @ApiResponse(responseCode = "401", description = "Token missing!")
+    @ApiResponse(responseCode = "403", description = "Token error!")
     @Operation(summary = "List of users api")
+    @SecurityRequirement(name = "studyeasy-demo-api")
     public ResponseEntity<List<AccountViewDTO>> users() {
         List<AccountViewDTO> accountViews = accountService.findAll()
                                             .stream()
-                                            .map((account) -> new AccountViewDTO(account.getId(),account.getEmail(),account.getRole()))
+                                            .map((account) -> new AccountViewDTO(account.getId(),account.getEmail(),account.getAuthorities()))
                                             .collect(Collectors.toList());
         
         return ResponseEntity.ok(accountViews);

@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.studyeasy.SpringRestDemo.Entities.Account;
 import org.studyeasy.SpringRestDemo.Repositories.AccountRepo;
+import org.studyeasy.SpringRestDemo.Util.Constants.Authority;
 
 @Service
 public class AccountService implements UserDetailsService{
@@ -23,7 +24,7 @@ public class AccountService implements UserDetailsService{
 
     public Account saveUser(Account account){
         account.setPassword( passwordEncoder.encode(account.getPassword()) );
-        if(account.getRole() == null) account.setRole("ROLE_USER");
+        if(account.getAuthorities() == null) account.setAuthorities(Authority.USER.toString());
 
         return accountRepo.save(account);
     }
@@ -41,7 +42,7 @@ public class AccountService implements UserDetailsService{
             return new org.springframework.security.core.userdetails.User(
                 foundUser.getEmail(),
                 foundUser.getPassword(),
-                List.of(new SimpleGrantedAuthority(foundUser.getRole())));
+                List.of(new SimpleGrantedAuthority(foundUser.getAuthorities())));
         }else{
             throw new UsernameNotFoundException("User with username " + username + " wasn't found");
         }
