@@ -100,6 +100,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(request -> request.requestMatchers("/auth/users/add", "/auth/token").permitAll()
                                                       .requestMatchers("/auth/users").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_NYASHNIY_ADMINCHICK")
+                                                      .requestMatchers("/auth/profile").authenticated()
                                                       .requestMatchers("/").permitAll()
                                                       .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**").permitAll()
                                                       .requestMatchers("/v3/api-docs/**").permitAll()

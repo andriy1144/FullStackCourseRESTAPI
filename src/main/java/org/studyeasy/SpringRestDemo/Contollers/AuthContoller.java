@@ -1,9 +1,11 @@
 package org.studyeasy.SpringRestDemo.Contollers;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +25,7 @@ import org.studyeasy.SpringRestDemo.Util.Constants.AccountError;
 import org.studyeasy.SpringRestDemo.Util.Constants.AccountSuccess;
 import org.studyeasy.SpringRestDemo.payload.auth.AccountDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.AccountViewDTO;
+import org.studyeasy.SpringRestDemo.payload.auth.ProfileDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.TokenDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.UserLoginDTO;
 
@@ -103,4 +106,22 @@ public class AuthContoller {
         return ResponseEntity.ok(accountViews);
     }
 
+    @GetMapping(value = "/profile", produces = "application/json")
+    @ApiResponse(responseCode = "200", description = "List of users!")
+    @ApiResponse(responseCode = "401", description = "Token missing!")
+    @ApiResponse(responseCode = "403", description = "Token error!")
+    @Operation(summary = "View profile!")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    public ResponseEntity<ProfileDTO> profile(Authentication authentication) {
+        String email = authentication.getName();
+
+        Optional<Account> account = accountService.findByEmail(email);
+        if(account.isPresent()){
+            Account accountToView = account.get();
+            ProfileDTO profile = new ProfileDTO(accountToView.getId(), accountToView.getEmail(),accountToView.getAuthorities());
+            return ResponseEntity.ok(profile);
+        }else{
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

@@ -33,6 +33,10 @@ public class AccountService implements UserDetailsService{
         return accountRepo.findAll();
     }
 
+    public Optional<Account> findByEmail(String email){
+        return accountRepo.findByEmail(email);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<Account> user = accountRepo.findByEmail(username);
