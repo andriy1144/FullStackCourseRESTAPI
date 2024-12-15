@@ -6,11 +6,13 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +27,7 @@ import org.studyeasy.SpringRestDemo.Util.Constants.AccountError;
 import org.studyeasy.SpringRestDemo.Util.Constants.AccountSuccess;
 import org.studyeasy.SpringRestDemo.payload.auth.AccountDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.AccountViewDTO;
+import org.studyeasy.SpringRestDemo.payload.auth.AuthoritiesDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.PasswordChangeDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.ProfileDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.TokenDTO;
@@ -107,8 +110,28 @@ public class AuthContoller {
         return ResponseEntity.ok(accountViews);
     }
 
+
+    @PutMapping(value = "/users/{userId}/update-authorities", consumes = "application/json",produces = "application/json")
+    @ApiResponse(responseCode = "200", description = "Authorities updated!")
+    @ApiResponse(responseCode = "401", description = "Token missing!")
+    @ApiResponse(responseCode = "403", description = "Token error!")
+    @Operation(summary = "Update authorities!")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    public ResponseEntity<AccountViewDTO> updateAuth(@Valid @RequestBody AuthoritiesDTO authoritiesDTO, @PathVariable(name = "userId") Long userId) {
+        Optional<Account> account = accountService.findUserById(userId);
+        if(account.isPresent()){
+            Account accountToChange = account.get();
+            accountToChange.setAuthorities(authoritiesDTO.getAuthorities());
+            accountService.saveUser(accountToChange);
+
+            return ResponseEntity.ok(new AccountViewDTO(accountToChange.getId(), accountToChange.getEmail(), accountToChange.getAuthorities()));
+        }else{
+            return new ResponseEntity<>(new AccountViewDTO(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @GetMapping(value = "/profile", produces = "application/json")
-    @ApiResponse(responseCode = "200", description = "List of users!")
+    @ApiResponse(responseCode = "200", description = "View profile!")
     @ApiResponse(responseCode = "401", description = "Token missing!")
     @ApiResponse(responseCode = "403", description = "Token error!")
     @Operation(summary = "View profile!")
@@ -127,7 +150,7 @@ public class AuthContoller {
     }
 
     @PutMapping(value = "/profile/update-password", consumes = "application/json",produces = "application/json")
-    @ApiResponse(responseCode = "200", description = "List of users!")
+    @ApiResponse(responseCode = "200", description = "Update profile!")
     @ApiResponse(responseCode = "401", description = "Token missing!")
     @ApiResponse(responseCode = "403", description = "Token error!")
     @Operation(summary = "Update profile!")
@@ -146,4 +169,6 @@ public class AuthContoller {
             return ResponseEntity.notFound().build();
         }
     }
+
+    
 }

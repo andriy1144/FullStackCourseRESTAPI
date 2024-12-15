@@ -36,6 +36,10 @@ public class AccountService implements UserDetailsService{
     public Optional<Account> findByEmail(String email){
         return accountRepo.findByEmail(email);
     }
+    
+    public Optional<Account> findUserById(Long id){
+        return accountRepo.findById(id);
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

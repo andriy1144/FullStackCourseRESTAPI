@@ -99,7 +99,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http
             .authorizeHttpRequests(request -> request.requestMatchers("/auth/users/add", "/auth/token").permitAll()
-                                                      .requestMatchers("/auth/users").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_NYASHNIY_ADMINCHICK")
+                                                      .requestMatchers("/auth/users/**").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_NYASHNIY_ADMINCHICK")
                                                       .requestMatchers("/auth/profile/**").authenticated()
                                                       .requestMatchers("/").permitAll()
                                                       .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**").permitAll()
