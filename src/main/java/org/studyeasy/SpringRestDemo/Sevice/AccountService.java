@@ -41,6 +41,10 @@ public class AccountService implements UserDetailsService{
         return accountRepo.findById(id);
     }
 
+    public void deleteById(Long id){
+        accountRepo.deleteById(id);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<Account> user = accountRepo.findByEmail(username);

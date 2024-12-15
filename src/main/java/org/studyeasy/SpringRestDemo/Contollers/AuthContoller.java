@@ -6,11 +6,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -171,4 +171,21 @@ public class AuthContoller {
     }
 
     
+    @DeleteMapping(value = "/profile/{userId}/delete")
+    @ApiResponse(responseCode = "200", description = "Delete profile!")
+    @ApiResponse(responseCode = "401", description = "Token missing!")
+    @ApiResponse(responseCode = "403", description = "Token error!")
+    @Operation(summary = "Delete profile!")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    public ResponseEntity<String> deleteProfile(Authentication authentication) {
+        String email = authentication.getName();
+        Optional<Account> account = accountService.findByEmail(email);
+        if(account.isPresent()){
+            accountService.deleteById(account.get().getId());
+
+            return ResponseEntity.ok("User deleted!");
+        }
+
+        return new ResponseEntity<>("Bad request", HttpStatus.BAD_REQUEST);
+    }
 }
