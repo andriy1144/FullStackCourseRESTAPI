@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,6 +25,7 @@ import org.studyeasy.SpringRestDemo.Util.Constants.AccountError;
 import org.studyeasy.SpringRestDemo.Util.Constants.AccountSuccess;
 import org.studyeasy.SpringRestDemo.payload.auth.AccountDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.AccountViewDTO;
+import org.studyeasy.SpringRestDemo.payload.auth.PasswordChangeDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.ProfileDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.TokenDTO;
 import org.studyeasy.SpringRestDemo.payload.auth.UserLoginDTO;
@@ -120,6 +121,27 @@ public class AuthContoller {
             Account accountToView = account.get();
             ProfileDTO profile = new ProfileDTO(accountToView.getId(), accountToView.getEmail(),accountToView.getAuthorities());
             return ResponseEntity.ok(profile);
+        }else{
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping(value = "/profile/update-password", consumes = "application/json",produces = "application/json")
+    @ApiResponse(responseCode = "200", description = "List of users!")
+    @ApiResponse(responseCode = "401", description = "Token missing!")
+    @ApiResponse(responseCode = "403", description = "Token error!")
+    @Operation(summary = "Update profile!")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    public ResponseEntity<AccountViewDTO> updatePassword(@Valid @RequestBody PasswordChangeDTO passwordChangeDTO, Authentication authentication) {
+        String email = authentication.getName();
+
+        Optional<Account> account = accountService.findByEmail(email);
+        if(account.isPresent()){
+            Account accountToChange = account.get();
+            accountToChange.setPassword(passwordChangeDTO.getPassword());
+            accountService.saveUser(accountToChange);
+
+            return ResponseEntity.ok(new AccountViewDTO(accountToChange.getId(), accountToChange.getEmail(), accountToChange.getAuthorities()));
         }else{
             return ResponseEntity.notFound().build();
         }
