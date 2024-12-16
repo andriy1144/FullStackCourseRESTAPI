@@ -1,5 +1,7 @@
 package org.studyeasy.SpringRestDemo.Sevice;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.studyeasy.SpringRestDemo.Entities.Album;
@@ -12,5 +14,9 @@ public class AlbumService {
 
     public Album saveAlbum(Album album){
         return albumRepo.save(album);
+    }
+
+    public List<Album> findAllByAccountId(Long id){
+        return albumRepo.findByAccount_Id(id);
     }
 }

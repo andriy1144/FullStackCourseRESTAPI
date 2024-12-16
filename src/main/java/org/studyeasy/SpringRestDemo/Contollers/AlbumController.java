@@ -1,14 +1,18 @@
 package org.studyeasy.SpringRestDemo.Contollers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.studyeasy.SpringRestDemo.Entities.Account;
 import org.studyeasy.SpringRestDemo.Entities.Album;
 import org.studyeasy.SpringRestDemo.Sevice.AccountService;
 import org.studyeasy.SpringRestDemo.Sevice.AlbumService;
@@ -54,5 +58,21 @@ public class AlbumController {
             log.debug(AlbumError.ADD_ALBUM_ERROR.toString() + ": " + e.getMessage());
             return new ResponseEntity<>(new AlbumViewDTO(),HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping(value = "/albums", produces = "application/json")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ApiResponse(responseCode = "200", description = "List of albums!")
+    @Operation(summary = "Lists all albums!")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    public ResponseEntity<List<AlbumViewDTO>> albums(Authentication authentication){
+        Account account = accountService.findByEmail(authentication.getName()).get();
+
+        List<AlbumViewDTO> albums = albumService.findAllByAccountId(account.getId()).stream()
+                                    .map((alb) -> new AlbumViewDTO(alb.getId(), alb.getName(), alb.getDescription()))
+                                    .toList();
+
+    
+        return ResponseEntity.ok(albums);
     }
 }
