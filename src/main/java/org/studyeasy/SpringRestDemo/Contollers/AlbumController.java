@@ -1,21 +1,33 @@
 package org.studyeasy.SpringRestDemo.Contollers;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.studyeasy.SpringRestDemo.Entities.Account;
 import org.studyeasy.SpringRestDemo.Entities.Album;
 import org.studyeasy.SpringRestDemo.Sevice.AccountService;
 import org.studyeasy.SpringRestDemo.Sevice.AlbumService;
+import org.studyeasy.SpringRestDemo.Util.AppUtils.AppUtil;
 import org.studyeasy.SpringRestDemo.Util.Constants.AlbumError;
 import org.studyeasy.SpringRestDemo.payload.album.AlbumPayloadDTO;
 import org.studyeasy.SpringRestDemo.payload.album.AlbumViewDTO;
@@ -29,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @RestController
-@RequestMapping("/album")
+@RequestMapping("/albums")
 @Slf4j
 @Tag(name = "Album controller!", description = "Controller for album and photo management!")
 public class AlbumController {
@@ -39,7 +51,7 @@ public class AlbumController {
     @Autowired
     private AlbumService albumService;
 
-    @PostMapping(value = "/albums/add", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = "/add", consumes = "application/json", produces = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiResponse(responseCode = "200", description = "Album was succesfully added!")
     @Operation(summary = "Creats new album!")
@@ -60,7 +72,7 @@ public class AlbumController {
         }
     }
 
-    @GetMapping(value = "/albums", produces = "application/json")
+    @GetMapping(value = "/", produces = "application/json")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @ApiResponse(responseCode = "200", description = "List of albums!")
     @Operation(summary = "Lists all albums!")
@@ -74,5 +86,65 @@ public class AlbumController {
 
     
         return ResponseEntity.ok(albums);
+    }
+
+    @PostMapping(value = "/{album_id}/upload_photos", consumes = {"multipart/form-data"})
+    @ApiResponse(responseCode = "400", description = "Check the payload or token")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    @Operation(summary = "Upload photos into album!")
+    public ResponseEntity<List<String>> photosUpload(@RequestPart(required = true) MultipartFile[] files, @PathVariable(name = "album_id") Long album_id, Authentication authentication){
+        String email = authentication.getName();
+        Optional<Account> optionalAccount = accountService.findByEmail(email);
+        Account account = optionalAccount.get();
+
+        Optional<Album> optionalAlbum = albumService.findById(album_id);
+        Album album;
+        if(optionalAccount.isPresent()){
+            album = optionalAlbum.get();
+
+            if(account.getId() != album.getAccount().getId()){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        
+        List<String> fileNamesWithSuccess = new ArrayList<>();
+        List<String> fileNamesWithError = new ArrayList<>();
+
+        Arrays.stream(files).forEach(file -> {
+            String contentType = file.getContentType();
+            if(contentType.equals("image/png") ||
+               contentType.equals("image/png") ||
+               contentType.equals("image/jpeg")){
+                fileNamesWithSuccess.add(file.getOriginalFilename());
+            
+                //Generating random file name
+                int length = 10;
+                boolean useLetter = true;
+                boolean useNumber = true;
+
+                try{
+                    String fileName = file.getOriginalFilename();
+                    String generatedString = RandomStringUtils.random(length, useLetter, useNumber);
+                    String finalPhotoName = generatedString + fileName;
+
+                    String absolute_fileLocation = AppUtil.getPhotoUploadPath(finalPhotoName, album_id);
+
+                    Path path = Paths.get(absolute_fileLocation);
+                    Files.copy(file.getInputStream(),path, StandardCopyOption.REPLACE_EXISTING);
+
+                }catch(Exception e){
+
+                }
+
+            }
+
+
+        });
+        
+
+
+        return null;
     }
 }

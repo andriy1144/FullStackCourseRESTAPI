@@ -1,6 +1,7 @@
 package org.studyeasy.SpringRestDemo.Sevice;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,5 +19,9 @@ public class AlbumService {
 
     public List<Album> findAllByAccountId(Long id){
         return albumRepo.findByAccount_Id(id);
+    }
+
+    public Optional<Album> findById(Long id){
+        return albumRepo.findById(id);
     }
 }

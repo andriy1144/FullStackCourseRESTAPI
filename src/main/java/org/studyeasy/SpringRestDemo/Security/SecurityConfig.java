@@ -102,7 +102,7 @@ public class SecurityConfig {
                                                       .requestMatchers("/auth/users/**").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_NYASHNIY_ADMINCHICK")
                                                       .requestMatchers("/auth/profile/**").authenticated()
                                                       .requestMatchers("/", "/db-console/**").permitAll()
-                                                      .requestMatchers("/album/**").authenticated()
+                                                      .requestMatchers("/albums/**").authenticated()
                                                       .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**").permitAll()
                                                       .requestMatchers("/v3/api-docs/**").permitAll()
                                                       .requestMatchers("/test").authenticated())
