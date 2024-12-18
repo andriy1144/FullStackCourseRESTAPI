@@ -101,7 +101,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(request -> request.requestMatchers("/auth/users/add", "/auth/token").permitAll()
                                                       .requestMatchers("/auth/users/**").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_NYASHNIY_ADMINCHICK")
                                                       .requestMatchers("/auth/profile/**").authenticated()
-                                                      .requestMatchers("/", "/db-console/**").permitAll()
+                                                      .requestMatchers("/**", "/db-console/**").permitAll()
                                                       .requestMatchers("/albums/**").authenticated()
                                                       .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**").permitAll()
                                                       .requestMatchers("/v3/api-docs/**").permitAll()

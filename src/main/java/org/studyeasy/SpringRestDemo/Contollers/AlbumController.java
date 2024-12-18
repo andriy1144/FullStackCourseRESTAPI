@@ -25,8 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.studyeasy.SpringRestDemo.Entities.Account;
 import org.studyeasy.SpringRestDemo.Entities.Album;
+import org.studyeasy.SpringRestDemo.Entities.Photo;
 import org.studyeasy.SpringRestDemo.Sevice.AccountService;
 import org.studyeasy.SpringRestDemo.Sevice.AlbumService;
+import org.studyeasy.SpringRestDemo.Sevice.PhotoService;
 import org.studyeasy.SpringRestDemo.Util.AppUtils.AppUtil;
 import org.studyeasy.SpringRestDemo.Util.Constants.AlbumError;
 import org.studyeasy.SpringRestDemo.payload.album.AlbumPayloadDTO;
@@ -51,6 +53,9 @@ public class AlbumController {
     @Autowired
     private AlbumService albumService;
 
+    @Autowired
+    private PhotoService photoService;
+
     @PostMapping(value = "/add", consumes = "application/json", produces = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiResponse(responseCode = "200", description = "Album was succesfully added!")
@@ -72,7 +77,7 @@ public class AlbumController {
         }
     }
 
-    @GetMapping(value = "/", produces = "application/json")
+    @GetMapping(produces = "application/json")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @ApiResponse(responseCode = "200", description = "List of albums!")
     @Operation(summary = "Lists all albums!")
@@ -133,18 +138,24 @@ public class AlbumController {
 
                     Path path = Paths.get(absolute_fileLocation);
                     Files.copy(file.getInputStream(),path, StandardCopyOption.REPLACE_EXISTING);
-
+                    
+                    Photo photo = new Photo();
+                    photo.setName(fileName);
+                    photo.setFileName(finalPhotoName);
+                    photo.setOriginalFileName(fileName);
+                    photo.setAlbum(album);             
+                    
+                    photoService.savePhoto(photo);
                 }catch(Exception e){
-
+                    
                 }
-
+            }else{
+                fileNamesWithError.add(file.getOriginalFilename());
             }
 
 
         });
-        
 
-
-        return null;
+        return ResponseEntity.ok(fileNamesWithSuccess);
     }
 }
