@@ -2,6 +2,8 @@ package org.studyeasy.SpringRestDemo.Contollers;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import org.springframework.http.HttpHeaders;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +18,9 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -178,5 +182,54 @@ public class AlbumController {
         response.add(result);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(value = "albums/{album_id}/photos/{photo_id}/download")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    public ResponseEntity<?> downloadPhoto(@PathVariable(name = "album_id") Long album_id,
+                                           @PathVariable(name = "photo_id") Long photo_id,
+                                           Authentication authentication){
+        String email = authentication.getName();
+        Optional<Account> optionalAccount = accountService.findByEmail(email);
+        Account account = optionalAccount.get();
+
+        Optional<Album> optionalAlbum = albumService.findById(album_id);
+        Album album;
+        if(optionalAccount.isPresent()){
+            album = optionalAlbum.get();
+
+            if(account.getId() != album.getAccount().getId()){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        Optional<Photo> optionalPhoto = photoService.findById(photo_id);
+        if(optionalPhoto.isPresent()){
+            Photo photo = optionalPhoto.get();
+            Resource resource = null;
+
+            try{
+                resource = AppUtil.getFileAsResource(album_id, PHOTOS_FOLDER_NAME, photo.getFileName());
+            }catch(IOException e){
+                return ResponseEntity.internalServerError().build();
+            }
+
+            if(resource == null){
+                return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
+            }
+
+            String contentType = "application/cotet-stream";
+            String headerValue = "attachment; filename=\"" + photo.getOriginalFileName() + "\"";
+
+            return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION,headerValue)
+                        .body(resource);
+                        
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 }

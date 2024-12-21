@@ -1,5 +1,7 @@
 package org.studyeasy.SpringRestDemo.Sevice;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.studyeasy.SpringRestDemo.Entities.Photo;
@@ -13,6 +15,10 @@ public class PhotoService {
 
     public Photo savePhoto(Photo photo){
         return photoRepo.save(photo);
+    }
+
+    public Optional<Photo> findById(Long id){
+        return photoRepo.findById(id);
     }
 
 }
