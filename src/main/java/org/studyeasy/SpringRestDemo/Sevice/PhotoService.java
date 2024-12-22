@@ -1,5 +1,6 @@
 package org.studyeasy.SpringRestDemo.Sevice;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,4 +22,7 @@ public class PhotoService {
         return photoRepo.findById(id);
     }
 
+    public List<Photo> findAllByAlbumId(Long id){
+        return photoRepo.findByAlbum_Id(id);
+    }
 }

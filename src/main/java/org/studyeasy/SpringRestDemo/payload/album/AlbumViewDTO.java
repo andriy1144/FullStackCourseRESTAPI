@@ -1,5 +1,9 @@
 package org.studyeasy.SpringRestDemo.payload.album;
 
+import java.util.List;
+
+import org.studyeasy.SpringRestDemo.Entities.Photo;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,4 +19,6 @@ public class AlbumViewDTO {
     private String name;
 
     private String description;
+
+    private List<PhotoDTO> photos;
 }

@@ -3,7 +3,6 @@ package org.studyeasy.SpringRestDemo.Contollers;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import org.springframework.http.HttpHeaders;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,6 +18,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +42,7 @@ import org.studyeasy.SpringRestDemo.Util.AppUtils.AppUtil;
 import org.studyeasy.SpringRestDemo.Util.Constants.AlbumError;
 import org.studyeasy.SpringRestDemo.payload.album.AlbumPayloadDTO;
 import org.studyeasy.SpringRestDemo.payload.album.AlbumViewDTO;
+import org.studyeasy.SpringRestDemo.payload.album.PhotoDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -83,7 +84,7 @@ public class AlbumController {
 
             album = albumService.saveAlbum(album);
             
-            return ResponseEntity.ok(new AlbumViewDTO(album.getId(),album.getName(),album.getDescription()));
+            return ResponseEntity.ok(new AlbumViewDTO(album.getId(),album.getName(),album.getDescription(),null));
         }catch(Exception e){
             log.debug(AlbumError.ADD_ALBUM_ERROR.toString() + ": " + e.getMessage());
             return new ResponseEntity<>(new AlbumViewDTO(),HttpStatus.BAD_REQUEST);
@@ -98,9 +99,17 @@ public class AlbumController {
     public ResponseEntity<List<AlbumViewDTO>> albums(Authentication authentication){
         Account account = accountService.findByEmail(authentication.getName()).get();
 
-        List<AlbumViewDTO> albums = albumService.findAllByAccountId(account.getId()).stream()
-                                    .map((alb) -> new AlbumViewDTO(alb.getId(), alb.getName(), alb.getDescription()))
-                                    .toList();
+        List<AlbumViewDTO> albums = new ArrayList<>();
+        for(Album album : albumService.findAllByAccountId(account.getId())){
+
+            List<PhotoDTO> photos = new ArrayList<>();
+            for(Photo photo: photoService.findAllByAlbumId(album.getId())){
+                String link = "albums/" + album.getId() + "/photos/" + photo.getId() + "/download_photo";
+                photos.add(new PhotoDTO(photo.getId(),photo.getName(),photo.getDescription(),photo.getFileName(),link));
+            }
+
+            albums.add(new AlbumViewDTO(album.getId(), album.getName(), album.getDescription(),photos));
+        }
 
     
         return ResponseEntity.ok(albums);
@@ -189,6 +198,18 @@ public class AlbumController {
     public ResponseEntity<?> downloadPhoto(@PathVariable(name = "album_id") Long album_id,
                                            @PathVariable(name = "photo_id") Long photo_id,
                                            Authentication authentication){
+            return downloadFile(album_id, photo_id, PHOTOS_FOLDER_NAME, authentication);
+    }
+
+    @GetMapping(value = "albums/{album_id}/photos/{photo_id}/download_thumbnail")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    public ResponseEntity<?> downloadThumbNail(@PathVariable(name = "album_id") Long album_id,
+                                               @PathVariable(name = "photo_id") Long photo_id,
+                                               Authentication authentication){
+            return downloadFile(album_id,photo_id,THUMBNAIL_FOLDER_NAME,authentication);
+    }
+
+    public ResponseEntity<?> downloadFile(Long album_id, Long photo_id, String folderName, Authentication authentication){
         String email = authentication.getName();
         Optional<Account> optionalAccount = accountService.findByEmail(email);
         Account account = optionalAccount.get();
@@ -211,7 +232,7 @@ public class AlbumController {
             Resource resource = null;
 
             try{
-                resource = AppUtil.getFileAsResource(album_id, PHOTOS_FOLDER_NAME, photo.getFileName());
+                resource = AppUtil.getFileAsResource(album_id, THUMBNAIL_FOLDER_NAME, photo.getFileName());
             }catch(IOException e){
                 return ResponseEntity.internalServerError().build();
             }
