@@ -32,5 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Logs' files ###
 appLog.log
 appLog.log.**
+
+### Pictures ###
+src/main/**/static/uploads/

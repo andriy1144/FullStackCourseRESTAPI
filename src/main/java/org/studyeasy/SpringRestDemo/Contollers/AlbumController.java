@@ -44,6 +44,7 @@ import org.studyeasy.SpringRestDemo.Util.Constants.AlbumError;
 import org.studyeasy.SpringRestDemo.payload.album.AlbumPayloadDTO;
 import org.studyeasy.SpringRestDemo.payload.album.AlbumViewDTO;
 import org.studyeasy.SpringRestDemo.payload.album.PhotoDTO;
+import org.studyeasy.SpringRestDemo.payload.album.PhotoPayloadDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -183,6 +184,44 @@ public class AlbumController {
         return ResponseEntity.ok(new AlbumViewDTO(album.getId(), album.getName(), album.getDescription(), photos));
     }
 
+    @PutMapping(value = "/{album_id}/photos/{photo_id}/update", consumes = "application/json")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    @Operation(summary = "Update photo by id!")
+    public ResponseEntity<PhotoDTO> updatePhoto(@Valid @RequestBody PhotoPayloadDTO photoPayloadDTO, @PathVariable(name = "photo_id") Long photo_id, @PathVariable(name = "album_id") Long album_id, Authentication authentication){
+        String email = authentication.getName();
+        Optional<Account> optionalAccount = accountService.findByEmail(email);
+        Account account = optionalAccount.get();
+
+        Optional<Album> optionalAlbum = albumService.findById(album_id);
+        Album album;
+        if(optionalAccount.isPresent()){
+            album = optionalAlbum.get();
+
+            if(account.getId() != album.getAccount().getId()){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        Optional<Photo> optionalPhoto = photoService.findById(photo_id);
+        if(!optionalPhoto.isPresent() || optionalPhoto.get().getAlbum().getId()!= album.getId()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        Photo photo = optionalPhoto.get();
+        photo.setDescription(photoPayloadDTO.getDescription());
+        photo.setName(photoPayloadDTO.getName());
+
+        photo = photoService.savePhoto(photo);
+        
+        String photoDownloadLink = String.format("albums/%d/photos/%d/download", album_id,photo_id);
+
+        PhotoDTO photoDTO = new PhotoDTO(photo.getId(), photo.getName(), photo.getDescription(),photo.getFileName(),photoDownloadLink);
+
+        return ResponseEntity.ok(photoDTO);
+    }
+
 
     @PostMapping(value = "/{album_id}/upload_photos", consumes = {"multipart/form-data"})
     @ApiResponse(responseCode = "400", description = "Check the payload or token")
@@ -262,7 +301,7 @@ public class AlbumController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(value = "albums/{album_id}/photos/{photo_id}/download")
+    @GetMapping(value = "/{album_id}/photos/{photo_id}/download")
     @SecurityRequirement(name = "studyeasy-demo-api")
     public ResponseEntity<?> downloadPhoto(@PathVariable(name = "album_id") Long album_id,
                                            @PathVariable(name = "photo_id") Long photo_id,
@@ -270,7 +309,7 @@ public class AlbumController {
             return downloadFile(album_id, photo_id, PHOTOS_FOLDER_NAME, authentication);
     }
 
-    @GetMapping(value = "albums/{album_id}/photos/{photo_id}/download_thumbnail")
+    @GetMapping(value = "/{album_id}/photos/{photo_id}/download_thumbnail")
     @SecurityRequirement(name = "studyeasy-demo-api")
     public ResponseEntity<?> downloadThumbNail(@PathVariable(name = "album_id") Long album_id,
                                                @PathVariable(name = "photo_id") Long photo_id,
@@ -298,6 +337,10 @@ public class AlbumController {
         Optional<Photo> optionalPhoto = photoService.findById(photo_id);
         if(optionalPhoto.isPresent()){
             Photo photo = optionalPhoto.get();
+
+            if(photo.getAlbum().getId() != album_id){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            }
             Resource resource = null;
 
             try{
