@@ -2,8 +2,6 @@ package org.studyeasy.SpringRestDemo.payload.album;
 
 import java.util.List;
 
-import org.studyeasy.SpringRestDemo.Entities.Photo;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

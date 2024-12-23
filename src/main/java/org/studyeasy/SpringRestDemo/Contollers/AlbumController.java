@@ -26,6 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -114,6 +115,74 @@ public class AlbumController {
     
         return ResponseEntity.ok(albums);
     }
+
+    @GetMapping(value = "/{album_id}",produces = "application/json")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ApiResponse(responseCode = "200", description = "List album by Id!")
+    @Operation(summary = "Lists all albums!")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    public ResponseEntity<AlbumViewDTO> albumById(@PathVariable(name = "album_id") Long album_id,Authentication authentication){
+        String email = authentication.getName();
+        Optional<Account> optionalAccount = accountService.findByEmail(email);
+        Account account = optionalAccount.get();
+
+        Optional<Album> optionalAlbum = albumService.findById(album_id);
+        Album album;
+        if(optionalAccount.isPresent()){
+            album = optionalAlbum.get();
+
+            if(account.getId() != album.getAccount().getId()){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        List<PhotoDTO> photos = new ArrayList<>();
+        for(Photo photo: photoService.findAllByAlbumId(album.getId())){
+            String link = "albums/" + album.getId() + "/photos/" + photo.getId() + "/download_photo";
+            photos.add(new PhotoDTO(photo.getId(),photo.getName(),photo.getDescription(),photo.getFileName(),link));
+        }
+
+        AlbumViewDTO albumViewDTO = new AlbumViewDTO(album.getId(),album.getName(),album.getDescription(),photos); 
+        return ResponseEntity.ok(albumViewDTO);
+    }
+
+    @PutMapping(value="/{album_id}/update")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    @Operation(summary = "Update album by id!")
+    public ResponseEntity<AlbumViewDTO> uploadAlbum(@Valid @RequestBody AlbumPayloadDTO albumPayloadDTO, @PathVariable(name = "album_id") Long album_id, Authentication authentication){
+        String email = authentication.getName();
+        Optional<Account> optionalAccount = accountService.findByEmail(email);
+        Account account = optionalAccount.get();
+
+        Optional<Album> optionalAlbum = albumService.findById(album_id);
+        Album album;
+        if(optionalAccount.isPresent()){
+            album = optionalAlbum.get();
+
+            if(account.getId() != album.getAccount().getId()){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        album.setDescription(albumPayloadDTO.getDescription());
+        album.setName(albumPayloadDTO.getName());
+
+        album = albumService.saveAlbum(album);
+
+        
+        List<PhotoDTO> photos = new ArrayList<>();
+        for(Photo photo: photoService.findAllByAlbumId(album.getId())){
+            String link = "albums/" + album.getId() + "/photos/" + photo.getId() + "/download_photo";
+            photos.add(new PhotoDTO(photo.getId(),photo.getName(),photo.getDescription(),photo.getFileName(),link));
+        }
+
+        return ResponseEntity.ok(new AlbumViewDTO(album.getId(), album.getName(), album.getDescription(), photos));
+    }
+
 
     @PostMapping(value = "/{album_id}/upload_photos", consumes = {"multipart/form-data"})
     @ApiResponse(responseCode = "400", description = "Check the payload or token")
@@ -253,4 +322,6 @@ public class AlbumController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
+
+
 }

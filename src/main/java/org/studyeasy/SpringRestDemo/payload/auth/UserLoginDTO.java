@@ -11,11 +11,11 @@ import lombok.Setter;
 @Setter
 public class UserLoginDTO {
     @Email(message = "Invalid email!")
-    @Schema(description = "Email address", example = "user@user.com", requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Email address", example = "admin@admin.com", requiredMode = RequiredMode.REQUIRED)
     private String email;
 
 
     @Size(min = 6, max = 20)
-    @Schema(description = "Password", example = "password", requiredMode = RequiredMode.REQUIRED, maxLength = 20, minLength = 6)
+    @Schema(description = "Password", example = "pass987", requiredMode = RequiredMode.REQUIRED, maxLength = 20, minLength = 6)
     private String password;
 }
