@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -222,6 +223,48 @@ public class AlbumController {
         return ResponseEntity.ok(photoDTO);
     }
 
+    @DeleteMapping(value = "/{album_id}/photos/{photo_id}/delete")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    @Operation(summary = "Delete photo by id!")
+    public ResponseEntity<String> deletePhoto(@PathVariable(name = "album_id") Long album_id, @PathVariable(name = "photo_id") Long photo_id, Authentication authentication){
+        try{
+            String email = authentication.getName();
+            Optional<Account> optionalAccount = accountService.findByEmail(email);
+            Account account = optionalAccount.get();
+
+            Optional<Album> optionalAlbum = albumService.findById(album_id);
+            Album album;
+            if(optionalAccount.isPresent()){
+                album = optionalAlbum.get();
+
+                if(account.getId() != album.getAccount().getId()){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                }
+            }else{
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+
+            Optional<Photo> optionalPhoto = photoService.findById(photo_id);
+            if(optionalPhoto.isPresent()){
+                Photo photo = optionalPhoto.get();
+                if(photo.getAlbum().getId() != album_id){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                }
+
+                AppUtil.deletePhotoFromPath(photo.getFileName(), PHOTOS_FOLDER_NAME, album_id);
+                AppUtil.deletePhotoFromPath(photo.getFileName(), THUMBNAIL_FOLDER_NAME, album_id);
+                photoService.delet(photo);
+
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body(null);
+            }else{
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+        }catch(Exception exception){
+            exception.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
     @PostMapping(value = "/{album_id}/upload_photos", consumes = {"multipart/form-data"})
     @ApiResponse(responseCode = "400", description = "Check the payload or token")
@@ -368,3 +411,4 @@ public class AlbumController {
 
 
 }
+

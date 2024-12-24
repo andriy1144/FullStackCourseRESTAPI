@@ -42,4 +42,13 @@ public class AppUtil {
             return null;
         } 
     }
+
+    //Deleting files
+    public static void deletePhotoFromPath(String fileName, String folderName, Long albumId){
+        String location = "src\\main\\resources\\static\\uploads\\" + albumId + "\\" + folderName + "\\" + fileName;
+        File file = new File(location);
+        if(file.exists()){
+            file.delete();
+        }
+    }
 }   
