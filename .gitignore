@@ -37,4 +37,7 @@ appLog.log
 appLog.log.**
 
 ### Pictures ###
-src/main/**/static/uploads/
+src/main/resources/static/uploads
+
+### DB ###
+db
