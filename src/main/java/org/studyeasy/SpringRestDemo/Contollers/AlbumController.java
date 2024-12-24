@@ -150,6 +150,42 @@ public class AlbumController {
         return ResponseEntity.ok(albumViewDTO);
     }
 
+    @DeleteMapping(value = "/{album_id}/delete")
+    @Operation(summary = "Lists all albums!")
+    @SecurityRequirement(name = "studyeasy-demo-api")
+    public ResponseEntity<?> deleteAlbum(@PathVariable(name = "album_id") Long album_id, Authentication authentication){
+        try{
+            String email = authentication.getName();
+            Optional<Account> optionalAccount = accountService.findByEmail(email);
+            Account account = optionalAccount.get();
+
+            Optional<Album> optionalAlbum = albumService.findById(album_id);
+            Album album;
+            if(optionalAccount.isPresent()){
+                album = optionalAlbum.get();
+
+                if(account.getId() != album.getAccount().getId()){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                }
+            }else{
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+
+            for(Photo photo : photoService.findAllByAlbumId(album_id)){
+                AppUtil.deletePhotoFromPath(photo.getFileName(), PHOTOS_FOLDER_NAME, album_id);
+                AppUtil.deletePhotoFromPath(photo.getFileName(), THUMBNAIL_FOLDER_NAME, album_id);
+                photoService.delet(photo);
+            }
+
+            albumService.delete(album);
+
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(null);
+        }catch(Exception ex){
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
     @PutMapping(value="/{album_id}/update")
     @SecurityRequirement(name = "studyeasy-demo-api")
     @Operation(summary = "Update album by id!")
@@ -265,6 +301,7 @@ public class AlbumController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
 
     @PostMapping(value = "/{album_id}/upload_photos", consumes = {"multipart/form-data"})
     @ApiResponse(responseCode = "400", description = "Check the payload or token")
