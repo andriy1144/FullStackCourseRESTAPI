@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/auth")
 @Tag(name = "Authentication Controller", description = "Controller for user management!")
 @Slf4j
+@CrossOrigin(originPatterns = "http://localhost:3000",maxAge = 3600) //Allows to comunicate with backend
 public class AuthContoller {
     
     @Autowired

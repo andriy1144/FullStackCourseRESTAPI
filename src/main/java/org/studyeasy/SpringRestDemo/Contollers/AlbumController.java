@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,6 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/albums")
 @Slf4j
 @Tag(name = "Album controller!", description = "Controller for album and photo management!")
+@CrossOrigin(originPatterns = "http://localhost:3000",maxAge = 3600) //Allows to comunicate with backend
 public class AlbumController {
     static final String PHOTOS_FOLDER_NAME = "photos";
     static final String THUMBNAIL_FOLDER_NAME = "thumbnails";
